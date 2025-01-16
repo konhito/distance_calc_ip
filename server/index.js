@@ -1,20 +1,23 @@
 import express from "express";
 import fetch from "node-fetch";
-
+import cors from "cors";
 const app = express();
-const port = 3000;
+const port = 3001;
+
+app.use(cors());
 
 const myLocation = { lat: 31.326, lon: 75.5762 };
 
-app.get("/get-distance", async (req, res) => {
+app.post("/distance", async (req, res) => {
   try {
     const response = await fetch("https://api.ipify.org?format=json");
     const data = await response.json();
+    console.log(data);
     const userIp = data.ip;
 
     const locationResponse = await fetch(`http://ip-api.com/json/${userIp}`);
     const locationData = await locationResponse.json();
-
+    console.log(locationData);
     const userLocation = {
       lat: locationData.lat,
       lon: locationData.lon,
@@ -22,11 +25,13 @@ app.get("/get-distance", async (req, res) => {
 
     const distance = calculateDistance(myLocation, userLocation);
 
-    res.json({ distance: distance.toFixed(2) });
+    res.json({ distance: distance, locationData, myLocation, data });
   } catch (error) {
     res.status(500).json({ error: "Error fetching IP or geolocation" });
   }
 });
+
+app.post("");
 
 function calculateDistance(coord1, coord2) {
   const R = 6371;
@@ -42,7 +47,7 @@ function calculateDistance(coord1, coord2) {
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  return R * c; 
+  return R * c;
 }
 
 app.listen(port, () => {
